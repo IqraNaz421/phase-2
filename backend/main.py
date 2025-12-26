@@ -70,12 +70,15 @@ app = FastAPI(lifespan=lifespan)
 # 3. CORS Fix
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=[
+        "http://localhost:3000", 
+        "http://127.0.0.1:3000",
+        "https://phase-2-blush.vercel.app"  # <--- Ye lazmi add karein
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 # 4. FIXED DASHBOARD ENDPOINT
 @app.get("/api/tasks/stats")
 async def get_task_stats(user_id: str, session: AsyncSession = Depends(get_session)):
