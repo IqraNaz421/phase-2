@@ -1,7 +1,7 @@
 // /** @type {import('next').NextConfig} */
 // const nextConfig = {
 //   env: {
-//     NEXT_PUBLIC_BACKEND_URL: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8001',
+//     NEXT_PUBLIC_BACKEND_URL: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://https://iqoonaz4321-taskneon-app.hf.space',
 //   },
 // }
 
@@ -13,7 +13,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   env: {
-    NEXT_PUBLIC_BACKEND_URL: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8001',
+    NEXT_PUBLIC_BACKEND_URL: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://https://iqoonaz4321-taskneon-app.hf.space',
   },
   // Ye nichay wali settings add karni hain
   typescript: {

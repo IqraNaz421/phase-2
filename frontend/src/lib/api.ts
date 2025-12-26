@@ -4,7 +4,7 @@ import { authClient } from './auth';
 // Create the base axios instance
 const apiClient: AxiosInstance = axios.create({
   // Backend port 8001 confirm karein
-  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8001',
+  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://https://iqoonaz4321-taskneon-app.hf.space',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
