@@ -51,13 +51,27 @@ def verify_token(token: str):
         logger.error(f"Token Verification Error: {e}")
         return None
 
+# def set_auth_cookie(response: JSONResponse, token: str):
+#     response.set_cookie(
+#         key="better-auth.session_token",
+#         value=token,
+#         httponly=True,
+#         secure=False,  # Local development ke liye False
+#         samesite="lax",
+#         max_age=3600,
+#         path="/"
+#     )
 def set_auth_cookie(response: JSONResponse, token: str):
+    # Production check
+    is_production = os.getenv("ENVIRONMENT") == "production" or "hf.space" in os.getenv("CORS_ORIGINS", "")
+
     response.set_cookie(
         key="better-auth.session_token",
         value=token,
         httponly=True,
-        secure=False,  # Local development ke liye False
-        samesite="lax",
+        # Production mein Secure=True aur SameSite="None" hona lazmi hai
+        secure=True if is_production else False, 
+        samesite="none" if is_production else "lax", 
         max_age=3600,
         path="/"
     )
