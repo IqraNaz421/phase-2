@@ -66,14 +66,15 @@ async def lifespan(app: FastAPI):
     await async_engine.dispose()
 
 app = FastAPI(lifespan=lifespan)
-
+allowed_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
 # 3. CORS Fix
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000", 
+        "http://localhost:8000",
         "http://127.0.0.1:3000",
-        "https://phase-2-blush.vercel.app"  # <--- Ye lazmi add karein
+        # "https://phase-2-blush.vercel.app"  # <--- Ye lazmi add karein
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -117,4 +118,4 @@ app.include_router(tasks_router, prefix="/api")
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="127.0.0.1", port=8001, reload=True)
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
