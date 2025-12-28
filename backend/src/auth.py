@@ -73,6 +73,8 @@ def set_auth_cookie(response: JSONResponse, token: str):
         secure=True if is_production else False, 
         samesite="none" if is_production else "lax", 
         max_age=3600,
+        samesite="none",
+        secure=True,
         path="/"
     )
 
