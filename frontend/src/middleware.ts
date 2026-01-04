@@ -60,17 +60,3 @@ export const config = {
 
 
 
-
-
-
-// import { NextResponse } from 'next/server';
-// import type { NextRequest } from 'next/server';
-
-// export function middleware(request: NextRequest) {
-//   // Filhal har request ko agay janay dein (No blocking)
-//   return NextResponse.next();
-// }
-
-// export const config = {
-//   matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
-// };

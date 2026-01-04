@@ -5,16 +5,16 @@ import { useAuth } from '@/hooks/useAuth';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { 
-  Zap, 
-  Target, 
-  Layout, 
-  Sparkles, 
-  ArrowRight, 
-  CheckCircle2, 
-  Menu, 
-  X, 
-  Rocket, 
+import {
+  Zap,
+  Target,
+  Layout,
+  Sparkles,
+  ArrowRight,
+  CheckCircle2,
+  Menu,
+  X,
+  Rocket,
   Activity,
   MousePointer2
 } from 'lucide-react';
@@ -22,13 +22,29 @@ import {
 export default function Home() {
   const { user, isLoading } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && user) {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && !isLoading && user) {
       router.push('/dashboard');
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading, router, isMounted]);
+
+  // Prevent hydration mismatch by not rendering auth-dependent content until mounted
+  if (!isMounted) {
+    return (
+      <div className="min-h-screen bg-[#09090b] text-white selection:bg-purple-500/30 overflow-x-hidden scroll-smooth font-sans">
+        <div className="absolute inset-0 z-0 opacity-[0.15] pointer-events-none"
+             style={{ backgroundImage: 'radial-gradient(#9333ea 0.5px, transparent 0.5px)', backgroundSize: '30px 30px' }}>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#09090b] text-white selection:bg-purple-500/30 overflow-x-hidden scroll-smooth font-sans">

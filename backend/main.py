@@ -1,5 +1,4 @@
 
-
 # from fastapi import FastAPI, Depends, HTTPException, Query
 # from fastapi.middleware.cors import CORSMiddleware
 # from contextlib import asynccontextmanager
@@ -14,7 +13,7 @@
 # # 1. Load env
 # load_dotenv()
 
-# # --- Imports (Ensure models.py has Task class) ---
+# # --- Imports ---
 # try:
 #     from src.auth import auth_router
 #     from src.tasks import tasks_router
@@ -34,18 +33,34 @@
 # ctx.check_hostname = False
 # ctx.verify_mode = ssl.CERT_NONE
 
-# # Optimized Engine to prevent hanging
+# # Engine Setup
+# # async_engine = create_async_engine(
+# #     DATABASE_URL, 
+# #     echo=True,
+# #     pool_pre_ping=True,
+# #     pool_recycle=300,
+# #     connect_args={
+# #         "ssl": ctx,
+# #         "server_settings": {
+# #             "jit": "off",
+# #             "statement_timeout": "20000"
+# #         }
+# #     }
+# # )
 # async_engine = create_async_engine(
 #     DATABASE_URL, 
 #     echo=True,
-#     pool_pre_ping=True,
-#     pool_recycle=300,
+#     pool_pre_ping=True,      # Connection use karne se pehle check karega
+#     pool_recycle=300,        # Connections ko refresh karega
+#     pool_size=5,             # Local ke liye itna kaafi hai
+#     max_overflow=10,
 #     connect_args={
-#         "ssl": ctx,
+#         "ssl": "require",    # Agar 'ctx' masla kar raha ho toh simple "require" try karein
 #         "server_settings": {
 #             "jit": "off",
-#             "statement_timeout": "20000" # 20 seconds timeout
-#         }
+#             "response_timeout": "30", # Statement timeout ki jagah response timeout behtar hai
+#         },
+#         "command_timeout": 60, # Connection ko thora aur waqt dein
 #     }
 # )
 
@@ -66,25 +81,36 @@
 #     await async_engine.dispose()
 
 # app = FastAPI(lifespan=lifespan)
-# allowed_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
-# # 3. CORS Fix
+
+# # --- 3. UPDATED CORS (For both Local & Vercel) ---
+# # Environment variable se origins uthayein (Hugging Face Secrets se)
+# env_origins = os.getenv("CORS_ORIGINS", "").split(",")
+# env_origins = [o.strip() for o in env_origins if o.strip()]
+
+# # In sab ko allow karna hai
+# final_origins = [
+#     "http://localhost:3000", 
+#     "http://localhost:8000",
+#     "http://127.0.0.1:3000",
+#     "https://phase-2-blush.vercel.app"
+# ]
+
+# # Merge both lists and remove duplicates
+# final_origins = list(set(final_origins + env_origins))
+
 # app.add_middleware(
 #     CORSMiddleware,
-#     allow_origins=[
-#         "http://localhost:3000", 
-#         "http://localhost:8000",
-#         "http://127.0.0.1:3000",
-#         # "https://phase-2-blush.vercel.app"  # <--- Ye lazmi add karein
-#     ],
+#     allow_origins=final_origins,
 #     allow_credentials=True,
 #     allow_methods=["*"],
 #     allow_headers=["*"],
+#     expose_headers=["*"]
 # )
-# # 4. FIXED DASHBOARD ENDPOINT
+
+# # --- 4. DASHBOARD ENDPOINT ---
 # @app.get("/api/tasks/stats")
 # async def get_task_stats(user_id: str, session: AsyncSession = Depends(get_session)):
 #     try:
-#         # User ke tasks fetch karo
 #         statement = select(Task).where(Task.user_id == user_id)
 #         result = await session.execute(statement)
 #         tasks = result.scalars().all()
@@ -92,10 +118,8 @@
 #         total = len(tasks)
 #         completed = len([t for t in tasks if t.completed])
 #         pending = total - completed
-        
 #         efficiency = f"{(completed / total * 100) if total > 0 else 0:.0f}%"
 
-#         # Graph ke liye data
 #         return {
 #             "totalTasks": total,
 #             "completed": completed,
@@ -119,10 +143,6 @@
 # if __name__ == "__main__":
 #     import uvicorn
 #     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
-
-
-
-
 
 
 
@@ -157,23 +177,21 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 if DATABASE_URL and "sslmode=" in DATABASE_URL:
     DATABASE_URL = DATABASE_URL.split("?")[0]
 
-# SSL for Neon
-ctx = ssl.create_default_context()
-ctx.check_hostname = False
-ctx.verify_mode = ssl.CERT_NONE
-
-# Engine Setup
+# Engine Setup (Optimized for Neon)
 async_engine = create_async_engine(
     DATABASE_URL, 
     echo=True,
-    pool_pre_ping=True,
-    pool_recycle=300,
+    pool_pre_ping=True,      
+    pool_recycle=300,        
+    pool_size=5,             
+    max_overflow=10,
     connect_args={
-        "ssl": ctx,
+        "ssl": "require",    
         "server_settings": {
             "jit": "off",
-            "statement_timeout": "20000"
-        }
+            "response_timeout": "30",
+        },
+        "command_timeout": 60,
     }
 )
 
@@ -195,29 +213,25 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-# --- 3. UPDATED CORS (For both Local & Vercel) ---
-# Environment variable se origins uthayein (Hugging Face Secrets se)
+# --- 3. UPDATED CORS (Production Ready) ---
 env_origins = os.getenv("CORS_ORIGINS", "").split(",")
 env_origins = [o.strip() for o in env_origins if o.strip()]
 
-# In sab ko allow karna hai
 final_origins = [
     "http://localhost:3000", 
     "http://localhost:8000",
-    "http://127.0.0.1:3000",
-    "https://phase-2-blush.vercel.app"
+    "https://phase-2-blush.vercel.app",  # Aapka Vercel link
 ]
 
-# Merge both lists and remove duplicates
 final_origins = list(set(final_origins + env_origins))
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=final_origins,
-    allow_credentials=True,
+    allow_credentials=True,      # Cookies share karne ke liye ye lazmi hai
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["*"]
+    expose_headers=["set-cookie"] # Browser ko cookie parne ki ijazat deta hai
 )
 
 # --- 4. DASHBOARD ENDPOINT ---
@@ -255,4 +269,4 @@ app.include_router(tasks_router, prefix="/api")
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=7860) # Production settings
